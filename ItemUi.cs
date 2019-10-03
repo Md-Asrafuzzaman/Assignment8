@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -15,29 +13,33 @@ namespace MyWindowsFormsApp
     public partial class ItemUi : Form
     { 
         IteamManager _iteamManager = new IteamManager();
-         public ItemUi()
+        Item item = new Item();
+        public ItemUi()
         {
             InitializeComponent();
         }
 
         private void addButton_Click(object sender, EventArgs e)
         {
+            
+            item.Name = nameTextBox.Text;
             //Check UNIQUE
-            if (_iteamManager.IsNameExists(nameTextBox.Text))
+            if (_iteamManager.IsNameExists(item))
             {
                 MessageBox.Show(nameTextBox.Text + " Already Exists!");
                 return;
             }
 
+            
             //Set Price as Mandatory
             if (String.IsNullOrEmpty(priceTextBox.Text))
             {
                 MessageBox.Show("Price Can not be Empty!!!");
                 return;
             }
-
+            item.Price = Convert.ToDouble(priceTextBox.Text);
             //Add/Insert Item
-            bool isAdded = _iteamManager.Add(nameTextBox.Text, Convert.ToDouble(priceTextBox.Text));
+            bool isAdded = _iteamManager.Add(item);
 
             if (isAdded)
             {
@@ -60,14 +62,15 @@ namespace MyWindowsFormsApp
         {
 
             //Set Id as Mandatory
-            if (String.IsNullOrEmpty(idTextBox.Text))
-            {
-                MessageBox.Show("Id Can not be Empty!!!");
-                return;
-            }
-
+            //if (String.IsNullOrEmpty(idTextBox.Text))
+            //{
+            //    MessageBox.Show("Id Can not be Empty!!!");
+            //    return;
+            //}
+            MessageBox.Show("Name : "+itemComboBox.Text + " Id : "+itemComboBox.SelectedValue);
+            item.Id = Convert.ToInt16(itemComboBox.SelectedValue);
             //Delete
-            if (_iteamManager.Delete(Convert.ToInt32(idTextBox.Text)))
+            if (_iteamManager.Delete(item))
             {
                 MessageBox.Show("Deleted");
             }
@@ -81,17 +84,24 @@ namespace MyWindowsFormsApp
 
         private void searchButton_Click(object sender, EventArgs e)
         {
-            showDataGridView.DataSource = _iteamManager.Search(nameTextBox.Text);
+            if (String.IsNullOrEmpty(nameTextBox.Text))
+            {
+                MessageBox.Show("Name Can not be Empty!!!");
+                 return;
+            }
+            item.Name = nameTextBox.Text;
+            showDataGridView.DataSource = _iteamManager.Search(item);
         }
 
         private void updateButton_Click(object sender, EventArgs e)
         {
             //Set Id as Mandatory
-            if (String.IsNullOrEmpty(idTextBox.Text))
-            {
-                MessageBox.Show("Id Can not be Empty!!!");
-                return;
-            }
+            //if (String.IsNullOrEmpty(idTextBox.Text))
+            //{
+            //    MessageBox.Show("Id Can not be Empty!!!");
+            //    return;
+            //}
+            MessageBox.Show("Name : " + itemComboBox.Text + " Id : " + itemComboBox.SelectedValue);
             //Set Price as Mandatory
             if (String.IsNullOrEmpty(priceTextBox.Text))
             {
@@ -99,15 +109,32 @@ namespace MyWindowsFormsApp
                 return;
             }
 
-            if (_iteamManager.Update(nameTextBox.Text, Convert.ToDouble(priceTextBox.Text), Convert.ToInt32(idTextBox.Text)))
+            item.Name = nameTextBox.Text;
+            item.Id = Convert.ToInt16(itemComboBox.SelectedValue);
+            item.Price = Convert.ToDouble(priceTextBox.Text);
+            if (_iteamManager.Update(item))
             {
                 MessageBox.Show("Updated");
                 showDataGridView.DataSource = _iteamManager.Display();
+                itemComboBox.DataSource = _iteamManager.ItemCombobox();
             }
             else
             {
                 MessageBox.Show("Not Updated");
             }
+        }
+
+        private void ItemUi_Load(object sender, EventArgs e)
+        {
+            itemComboBox.DataSource = _iteamManager.ItemCombobox();
+        }
+
+        private void showDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int i;
+            i = showDataGridView.SelectedCells[0].RowIndex;
+            nameTextBox.Text = showDataGridView.Rows[i].Cells[1].Value.ToString();
+            priceTextBox.Text = showDataGridView.Rows[i].Cells[2].Value.ToString();
         }
         //Method
     }
